@@ -39,8 +39,8 @@
 
 - [x] Validate the fixed upload and OCR flow against the user-provided university timetable image and report exact extraction discrepancies
 
-- [ ] Clearly identify app-provided default categories while preserving their existing calculation behavior and edit/delete safeguards
-- [ ] Fix deterministic Reset all local data behavior across storage, in-memory state, navigation, and reload
-- [ ] Add regression coverage for reset persistence and first-launch recovery after rehydration
-- [ ] Manually validate reset confirmation, reset, reload, and first-launch behavior
-- [ ] Run full validation, commit intended fixes, push main without rewriting history, and verify origin/main
+- [x] Clearly identify app-provided default categories while preserving their existing calculation behavior and edit/delete safeguards
+- [x] Fix deterministic Reset all local data behavior across storage, in-memory state, navigation, and reload
+- [x] Add regression coverage for reset persistence and first-launch recovery after rehydration
+- [x] Manually validate reset confirmation, reset, reload, and first-launch behavior
+- [x] Run full validation, commit intended fixes, push main without rewriting history, and verify origin/main
