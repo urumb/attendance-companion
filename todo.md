@@ -24,3 +24,9 @@
 - [x] Perform final staged-file and secret-safety check before GitHub push
 - [x] Commit repository-hygiene changes and connect the existing remote history to GitHub
 - [x] Push main and verify the complete application source on GitHub
+
+- [ ] Add secure server-side image/PDF timetable extraction with editable review and transformation tests
+- [ ] Extend the simulator with full-day and multi-event absence selection
+- [ ] Implement add, edit, delete, and safeguards for attendance categories
+- [ ] Expand calculation integrity coverage for category behaviors and absence scenarios
+- [ ] Run complete regression, production build, persistence checks, and push validated enhancements to main
