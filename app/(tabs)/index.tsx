@@ -1,48 +1,50 @@
-import { ScrollView, Text, View, TouchableOpacity } from "react-native";
-
+import { useMemo, useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { router } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
+import { useAppStore } from "@/lib/app-store";
+import { calculateMetrics } from "@/shared/attendance";
 
-/**
- * Home Screen - NativeWind Example
- *
- * This template uses NativeWind (Tailwind CSS for React Native).
- * You can use familiar Tailwind classes directly in className props.
- *
- * Key patterns:
- * - Use `className` instead of `style` for most styling
- * - Theme colors: use tokens directly (bg-background, text-foreground, bg-primary, etc.); no dark: prefix needed
- * - Responsive: standard Tailwind breakpoints work on web
- * - Custom colors defined in tailwind.config.js
- */
-export default function HomeScreen() {
-  return (
-    <ScreenContainer className="p-6">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View className="flex-1 gap-8">
-          {/* Hero Section */}
-          <View className="items-center gap-2">
-            <Text className="text-4xl font-bold text-foreground">Welcome</Text>
-            <Text className="text-base text-muted text-center">
-              Edit app/(tabs)/index.tsx to get started
-            </Text>
-          </View>
+const navy = "#111827";
+const muted = "#687386";
+const blue = "#3155D9";
+const paleBlue = "#EEF2FF";
+const green = "#168A5B";
+const amber = "#B7791F";
+const coral = "#C94B4B";
 
-          {/* Example Card */}
-          <View className="w-full max-w-sm self-center bg-surface rounded-2xl p-6 shadow-sm border border-border">
-            <Text className="text-lg font-semibold text-foreground mb-2">NativeWind Ready</Text>
-            <Text className="text-sm text-muted leading-relaxed">
-              Use Tailwind CSS classes directly in your React Native components.
-            </Text>
-          </View>
-
-          {/* Example Button */}
-          <View className="items-center">
-            <TouchableOpacity className="bg-primary px-6 py-3 rounded-full active:opacity-80">
-              <Text className="text-background font-semibold">Get Started</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </ScrollView>
-    </ScreenContainer>
-  );
+function ActionButton({ label, onPress, secondary = false }: { label: string; onPress: () => void; secondary?: boolean }) {
+  return <Pressable onPress={onPress} style={({ pressed }) => [styles.button, secondary ? styles.secondaryButton : styles.primaryButton, pressed && styles.pressed]}><Text style={[styles.buttonText, secondary && styles.secondaryButtonText]}>{label}</Text></Pressable>;
 }
+
+export default function DashboardScreen() {
+  const store = useAppStore();
+  const [absence, setAbsence] = useState("");
+  const metrics = useMemo(() => calculateMetrics(store, Number(absence) || 0), [store, absence]);
+  if (!store.hydrated) return <ScreenContainer><View style={styles.center}><ActivityIndicator color={blue} /><Text style={styles.muted}>Loading your attendance…</Text></View></ScreenContainer>;
+  if (!store.profile) return <Onboarding />;
+  const statusColor = metrics.status === "safe" ? green : metrics.status === "watch" ? amber : coral;
+  const statusLabel = metrics.status === "safe" ? "On track" : metrics.status === "watch" ? "Keep an eye on it" : "Needs attention";
+  return <ScreenContainer containerClassName="bg-[#F7F8FA]" className="px-5">
+    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+      <View style={styles.header}><View><Text style={styles.eyebrow}>ATTENDANCE COMPANION</Text><Text style={styles.title}>Good morning, {store.profile.name.split(" ")[0]}.</Text><Text style={styles.subtitle}>{store.profile.course || "Your semester overview"}</Text></View><Pressable onPress={() => router.push("/settings")} style={styles.avatar}><Text style={styles.avatarText}>{store.profile.name.slice(0, 1).toUpperCase()}</Text></Pressable></View>
+      <View style={[styles.heroCard, { borderColor: `${statusColor}33` }]}><View style={styles.heroTop}><View><Text style={styles.cardLabel}>CURRENT ATTENDANCE</Text><Text style={[styles.bigNumber, { color: statusColor }]}>{metrics.percentage.toFixed(1)}<Text style={styles.percent}>%</Text></Text></View><View style={[styles.statusBadge, { backgroundColor: `${statusColor}18` }]}><View style={[styles.statusDot, { backgroundColor: statusColor }]} /><Text style={[styles.statusText, { color: statusColor }]}>{statusLabel}</Text></View></View><View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${Math.min(100, metrics.percentage)}%`, backgroundColor: statusColor }]} /></View><View style={styles.heroMeta}><Text style={styles.muted}>{metrics.present.toFixed(1)} present / {metrics.total.toFixed(1)} counted hours</Text><Text style={styles.targetText}>Target {metrics.target}%</Text></View></View>
+      <View style={styles.metricGrid}><Metric label="Safe absence" value={`${metrics.safeAbsence.toFixed(1)}h`} note="before target risk" color={green} /><Metric label="Hours needed" value={`${metrics.hoursNeeded.toFixed(1)}h`} note="to reach target" color={blue} /><Metric label="Future hours" value={`${metrics.futureHours.toFixed(1)}h`} note="scheduled remaining" color={navy} /><Metric label="Projected final" value={`${metrics.projectedPercentage.toFixed(1)}%`} note={metrics.achievable ? "if you attend all" : "target may be out of reach"} color={metrics.achievable ? green : coral} /></View>
+      <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>What-if simulator</Text><Text style={styles.sectionHint}>No changes are saved</Text></View>
+      <View style={styles.simCard}><Text style={styles.simTitle}>Planning to miss a class?</Text><Text style={styles.muted}>See the impact before you decide.</Text><View style={styles.inputRow}><TextInput value={absence} onChangeText={setAbsence} keyboardType="decimal-pad" placeholder="0" placeholderTextColor="#A0A8B5" style={styles.hourInput} /><Text style={styles.hourSuffix}>hours absent</Text><Pressable onPress={() => setAbsence("0")} style={styles.reset}><Text style={styles.resetText}>Reset</Text></Pressable></View><View style={[styles.simResult, { backgroundColor: metrics.projectedPercentage >= metrics.target ? "#EAF7F1" : "#FFF0EF" }]}><Text style={[styles.simResultValue, { color: metrics.projectedPercentage >= metrics.target ? green : coral }]}>{metrics.projectedPercentage.toFixed(1)}%</Text><Text style={styles.simResultCopy}>{metrics.projectedPercentage >= metrics.target ? `You stay above your ${metrics.target}% target.` : `That would put you below your ${metrics.target}% target.`}</Text></View></View>
+      <View style={styles.quickActions}><ActionButton label="Import timetable" onPress={() => router.push("/import")} /><ActionButton label="Open calendar" onPress={() => router.push("/calendar")} secondary /></View>
+    </ScrollView>
+  </ScreenContainer>;
+}
+
+function Metric({ label, value, note, color }: { label: string; value: string; note: string; color: string }) { return <View style={styles.metric}><Text style={styles.metricLabel}>{label}</Text><Text style={[styles.metricValue, { color }]}>{value}</Text><Text style={styles.metricNote}>{note}</Text></View>; }
+
+function Onboarding() {
+  const store = useAppStore();
+  const [name, setName] = useState(""); const [course, setCourse] = useState(""); const [present, setPresent] = useState(""); const [total, setTotal] = useState(""); const [target, setTarget] = useState("75");
+  const valid = name.trim().length > 0 && Number(total) >= Number(present) && Number(total) >= 0;
+  return <ScreenContainer containerClassName="bg-[#F7F8FA]" className="px-6"><ScrollView contentContainerStyle={styles.onboarding}><View style={styles.logoMark}><Text style={styles.logoCheck}>✓</Text></View><Text style={styles.welcomeEyebrow}>WELCOME TO ATTENDANCE COMPANION</Text><Text style={styles.welcomeTitle}>Stay ahead of your attendance.</Text><Text style={styles.welcomeCopy}>Set your baseline once, then make confident decisions about every class ahead.</Text><View style={styles.form}><Field label="Your name" value={name} onChangeText={setName} placeholder="e.g. Alex Morgan" /><Field label="Course or semester" value={course} onChangeText={setCourse} placeholder="e.g. BSc Computer Science" /><View style={styles.formRow}><View style={{ flex: 1 }}><Field label="Present hours" value={present} onChangeText={setPresent} placeholder="0" numeric /></View><View style={{ flex: 1 }}><Field label="Counted hours" value={total} onChangeText={setTotal} placeholder="0" numeric /></View></View><Text style={styles.fieldLabel}>Attendance target</Text><View style={styles.targetRow}>{[75, 80, 85, 90].map((item) => <Pressable key={item} onPress={() => setTarget(String(item))} style={[styles.targetChip, target === String(item) && styles.targetChipActive]}><Text style={[styles.targetChipText, target === String(item) && styles.targetChipTextActive]}>{item}%</Text></Pressable>)}</View><Field label="Or enter a custom target" value={target} onChangeText={setTarget} placeholder="75" numeric /></View><ActionButton label="Create my dashboard" onPress={() => valid && store.saveProfile({ name: name.trim(), course: course.trim(), presentHours: Number(present) || 0, totalHours: Number(total) || 0, target: Number(target) || 75 })} /></ScrollView></ScreenContainer>;
+}
+function Field({ label, value, onChangeText, placeholder, numeric = false }: { label: string; value: string; onChangeText: (value: string) => void; placeholder: string; numeric?: boolean }) { return <View style={styles.field}><Text style={styles.fieldLabel}>{label}</Text><TextInput value={value} onChangeText={onChangeText} placeholder={placeholder} placeholderTextColor="#A0A8B5" keyboardType={numeric ? "decimal-pad" : "default"} style={styles.textInput} /></View>; }
+
+const styles = StyleSheet.create({ scroll: { paddingTop: 18, paddingBottom: 32 }, header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }, eyebrow: { fontSize: 11, letterSpacing: 1.3, color: blue, fontWeight: "800", marginBottom: 7 }, title: { fontSize: 26, lineHeight: 32, color: navy, fontWeight: "800" }, subtitle: { fontSize: 14, color: muted, marginTop: 4 }, avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: paleBlue, alignItems: "center", justifyContent: "center" }, avatarText: { color: blue, fontSize: 17, fontWeight: "800" }, heroCard: { backgroundColor: "#FFF", borderRadius: 24, padding: 20, borderWidth: 1, marginBottom: 14 }, heroTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }, cardLabel: { color: muted, fontSize: 11, letterSpacing: 1.1, fontWeight: "800" }, bigNumber: { fontSize: 52, lineHeight: 60, fontWeight: "800", marginTop: 8 }, percent: { fontSize: 25, fontWeight: "700" }, statusBadge: { borderRadius: 20, paddingHorizontal: 11, paddingVertical: 8, flexDirection: "row", alignItems: "center", gap: 6 }, statusDot: { width: 7, height: 7, borderRadius: 4 }, statusText: { fontSize: 12, fontWeight: "800" }, progressTrack: { height: 8, backgroundColor: "#EEF0F4", borderRadius: 5, overflow: "hidden", marginTop: 18 }, progressFill: { height: "100%", borderRadius: 5 }, heroMeta: { flexDirection: "row", justifyContent: "space-between", marginTop: 12 }, muted: { color: muted, fontSize: 13 }, targetText: { color: navy, fontSize: 13, fontWeight: "700" }, metricGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 25 }, metric: { width: "48%", backgroundColor: "#FFF", borderRadius: 18, padding: 15, borderWidth: 1, borderColor: "#E7EAF0" }, metricLabel: { fontSize: 12, color: muted, fontWeight: "700" }, metricValue: { fontSize: 24, lineHeight: 30, fontWeight: "800", marginTop: 8 }, metricNote: { fontSize: 11, color: muted, marginTop: 4 }, sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }, sectionTitle: { fontSize: 19, fontWeight: "800", color: navy }, sectionHint: { fontSize: 12, color: muted }, simCard: { backgroundColor: "#FFF", borderRadius: 20, padding: 18, borderWidth: 1, borderColor: "#E7EAF0" }, simTitle: { fontSize: 16, color: navy, fontWeight: "800", marginBottom: 4 }, inputRow: { flexDirection: "row", alignItems: "center", marginTop: 17, gap: 9 }, hourInput: { borderWidth: 1, borderColor: "#D7DCE5", borderRadius: 12, width: 80, padding: 12, fontSize: 18, fontWeight: "700", color: navy, textAlign: "center" }, hourSuffix: { color: muted, fontSize: 14, flex: 1 }, reset: { padding: 8 }, resetText: { color: blue, fontWeight: "700", fontSize: 13 }, simResult: { borderRadius: 14, padding: 13, marginTop: 16, flexDirection: "row", alignItems: "center", gap: 10 }, simResultValue: { fontSize: 20, fontWeight: "800" }, simResultCopy: { color: navy, fontSize: 12, flex: 1, lineHeight: 17 }, quickActions: { gap: 10, marginTop: 14 }, button: { borderRadius: 14, paddingVertical: 15, alignItems: "center", justifyContent: "center" }, primaryButton: { backgroundColor: blue }, secondaryButton: { backgroundColor: "#FFF", borderWidth: 1, borderColor: "#D8DDE7" }, buttonText: { color: "#FFF", fontSize: 15, fontWeight: "800" }, secondaryButtonText: { color: blue }, pressed: { opacity: 0.82, transform: [{ scale: 0.985 }] }, center: { flex: 1, justifyContent: "center", alignItems: "center", gap: 12 }, onboarding: { flexGrow: 1, paddingTop: 48, paddingBottom: 28 }, logoMark: { width: 64, height: 64, borderRadius: 20, backgroundColor: blue, alignItems: "center", justifyContent: "center", marginBottom: 28 }, logoCheck: { fontSize: 36, color: "#FFF", fontWeight: "800" }, welcomeEyebrow: { color: blue, fontWeight: "800", letterSpacing: 1.1, fontSize: 11 }, welcomeTitle: { color: navy, fontWeight: "800", fontSize: 34, lineHeight: 39, marginTop: 12 }, welcomeCopy: { color: muted, fontSize: 16, lineHeight: 24, marginTop: 14, maxWidth: 350 }, form: { marginTop: 32, gap: 3 }, field: { marginBottom: 14 }, fieldLabel: { fontSize: 12, color: navy, fontWeight: "800", marginBottom: 7 }, textInput: { backgroundColor: "#FFF", borderWidth: 1, borderColor: "#D8DDE7", borderRadius: 13, paddingHorizontal: 14, paddingVertical: 12, color: navy, fontSize: 15 }, formRow: { flexDirection: "row", gap: 12 }, targetRow: { flexDirection: "row", gap: 8, marginBottom: 14 }, targetChip: { backgroundColor: "#FFF", borderRadius: 12, paddingVertical: 11, flex: 1, alignItems: "center", borderWidth: 1, borderColor: "#D8DDE7" }, targetChipActive: { backgroundColor: paleBlue, borderColor: blue }, targetChipText: { color: muted, fontWeight: "700" }, targetChipTextActive: { color: blue }, });
