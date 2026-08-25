@@ -16,3 +16,11 @@
 - [x] Add empty, loading, error, and destructive-action confirmation states
 - [x] Run lint, typecheck, automated tests, and end-to-end persistence validation
 - [ ] Save final checkpoint and deliver project version
+
+- [x] Audit repository for secrets, sensitive local data, generated files, and build artifacts before GitHub use
+- [x] Update .gitignore and .env.example for safe GitHub preparation without changing app functionality
+- [x] Verify the exact safe commit set and document local Git commands without pushing
+
+- [ ] Perform final staged-file and secret-safety check before GitHub push
+- [ ] Commit repository-hygiene changes and connect the existing remote history to GitHub
+- [ ] Push main and verify the complete application source on GitHub

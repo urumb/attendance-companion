@@ -1,66 +1,63 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
-
-# dependencies
+# Dependencies
 node_modules/
 
-# Expo
+# Expo / React Native generated output
 .expo/
-dist/
+.expo-shared/
 web-build/
+dist/
+build/
+coverage/
 expo-env.d.ts
+android/
+ios/
+.metro-health-check*
 
-# Native
-.kotlin/
-*.orig.*
+# Local environment files and secrets
+.env
+.env.*
+!.env.example
+
+# Native signing credentials and certificates
 *.jks
+*.keystore
 *.p8
 *.p12
 *.key
+*.pem
 *.mobileprovision
 
-# Metro
-.metro-health-check*
+# Local databases and database exports
+*.db
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+*.dump
+*.sql.gz
 
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# macOS
-.DS_Store
-*.pem
-
-# local env files
-.env*.local
-
-# typescript
+# Logs, coverage, caches, and temporary files
+.manus-logs/
+logs/
+*.log
+coverage/
+.cache/
+.tmp/
 *.tsbuildinfo
+*.tgz
+*.tar.gz
 
-app-example
-
-# generated native folders
-/ios
-/android
-
-# IDE
+# OS and IDE files
+.DS_Store
+Thumbs.db
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# Logs
-logs
-*.log
-
-# OS
-Thumbs.db
-
-# Build files
-*.tgz
-*.tar.gz
-.cache/
-
-# Webdev artifacts (checkpoint zips, migrations, etc.)
+# WebDev/session metadata and generated archives
+.manus/
 .webdev/
 .project-config.json
+
+# Keep source-controlled project files, migrations, lockfiles, and bundled app assets tracked.
