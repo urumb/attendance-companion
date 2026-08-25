@@ -23,6 +23,8 @@ export type AttendanceRecord = {
   eventId: string;
   state: AttendanceState;
   date: string;
+  presentHours?: number;
+  totalHours?: number;
 };
 
 export type AttendanceProfile = {
@@ -38,6 +40,11 @@ export type AppData = {
   categories: AttendanceCategory[];
   timetable: TimetableEvent[];
   records: AttendanceRecord[];
+};
+
+export type AttendanceScenario = {
+  manualAbsenceHours?: number;
+  plannedEventIds?: string[];
 };
 
 export const DEFAULT_CATEGORIES: AttendanceCategory[] = [
@@ -66,26 +73,48 @@ export function applyEventToTotals(
   return { present: countsPresent && state === "present" ? event.duration : 0, total: countsTotal ? event.duration : 0 };
 }
 
-export function calculateMetrics(data: AppData, plannedAbsenceHours = 0) {
+export function eventPotential(event: TimetableEvent, categories: AttendanceCategory[]) {
+  const category = categoryFor(categories, event.categoryId);
+  if (category.mode === "excluded") return { present: 0, total: 0, scheduled: 0 };
+  return {
+    present: category.mode === "both" || category.mode === "presentOnly" ? event.duration : 0,
+    total: category.mode === "both" || category.mode === "totalOnly" ? event.duration : 0,
+    scheduled: event.duration,
+  };
+}
+
+export function calculateMetrics(data: AppData, scenario: number | AttendanceScenario = 0) {
+  const resolvedScenario = typeof scenario === "number" ? { manualAbsenceHours: scenario, plannedEventIds: [] } : scenario;
+  const manualAbsenceHours = Math.max(0, resolvedScenario.manualAbsenceHours ?? 0);
+  const plannedEventIds = new Set(resolvedScenario.plannedEventIds ?? []);
   const profile = data.profile ?? { name: "", course: "", presentHours: 0, totalHours: 0, target: 75 };
   const actual = data.timetable.reduce((sum, event) => {
     const record = data.records.find((item) => item.eventId === event.id);
     if (!record) return sum;
-    const delta = applyEventToTotals(event, record.state, data.categories);
+    const delta = typeof record.presentHours === "number" && typeof record.totalHours === "number"
+      ? { present: record.presentHours, total: record.totalHours }
+      : applyEventToTotals(event, record.state, data.categories);
     return { present: sum.present + delta.present, total: sum.total + delta.total };
   }, { present: 0, total: 0 });
   const present = Math.max(0, profile.presentHours + actual.present);
   const total = Math.max(0, profile.totalHours + actual.total);
   const future = data.timetable.filter((event) => !data.records.some((record) => record.eventId === event.id));
+  const selectedEvents = future.filter((event) => plannedEventIds.has(event.id));
   const futureTotals = future.reduce((sum, event) => {
-    const delta = applyEventToTotals(event, "present", data.categories);
-    const category = categoryFor(data.categories, event.categoryId);
+    const potential = eventPotential(event, data.categories);
+    if (plannedEventIds.has(event.id)) {
+      return { present: sum.present, total: sum.total + potential.total };
+    }
     return {
-      present: sum.present + delta.present,
-      total: sum.total + (category.mode === "both" || category.mode === "totalOnly" ? event.duration : 0),
+      present: sum.present + potential.present,
+      total: sum.total + potential.total,
     };
   }, { present: 0, total: 0 });
-  const projectedTotal = total + futureTotals.total + plannedAbsenceHours;
+  const selectedImpact = selectedEvents.reduce((sum, event) => {
+    const potential = eventPotential(event, data.categories);
+    return { scheduled: sum.scheduled + potential.scheduled, counted: sum.counted + potential.total, present: sum.present + potential.present };
+  }, { scheduled: 0, counted: 0, present: 0 });
+  const projectedTotal = total + futureTotals.total + manualAbsenceHours;
   const projectedPresent = Math.max(0, present + futureTotals.present);
   const percentage = total > 0 ? (present / total) * 100 : 0;
   const projectedPercentage = projectedTotal > 0 ? (projectedPresent / projectedTotal) * 100 : percentage;
@@ -107,7 +136,13 @@ export function calculateMetrics(data: AppData, plannedAbsenceHours = 0) {
     projectedPercentage,
     maxFutureMiss,
     achievable,
+    selectedEventCount: selectedEvents.length,
+    selectedScheduledHours: selectedImpact.scheduled,
+    selectedCountedHours: selectedImpact.counted,
+    selectedPresentHours: selectedImpact.present,
+    plannedAbsenceHours: manualAbsenceHours + selectedImpact.counted,
     status: percentage >= target ? "safe" : percentage >= target - 5 ? "watch" : "risk",
+    projectedStatus: projectedPercentage >= target ? "safe" : projectedPercentage >= target - 5 ? "watch" : "risk",
   } as const;
 }
 

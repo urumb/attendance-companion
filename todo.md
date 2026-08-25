@@ -11,7 +11,7 @@
 - [x] Build Calendar / Week view with attendance state controls
 - [x] Build configurable attendance category settings
 - [x] Build timetable import flow for images, PDFs, and spreadsheets
-- [ ] Add AI/OCR extraction integration and manual fallback
+- [x] Add AI/OCR extraction integration and manual fallback
 - [x] Build editable timetable review and confirmation screen
 - [x] Add empty, loading, error, and destructive-action confirmation states
 - [x] Run lint, typecheck, automated tests, and end-to-end persistence validation
@@ -25,8 +25,8 @@
 - [x] Commit repository-hygiene changes and connect the existing remote history to GitHub
 - [x] Push main and verify the complete application source on GitHub
 
-- [ ] Add secure server-side image/PDF timetable extraction with editable review and transformation tests
-- [ ] Extend the simulator with full-day and multi-event absence selection
-- [ ] Implement add, edit, delete, and safeguards for attendance categories
-- [ ] Expand calculation integrity coverage for category behaviors and absence scenarios
-- [ ] Run complete regression, production build, persistence checks, and push validated enhancements to main
+- [x] Add secure server-side image/PDF timetable extraction with editable review and transformation tests
+- [x] Extend the simulator with full-day and multi-event absence selection
+- [x] Implement add, edit, delete, and safeguards for attendance categories
+- [x] Expand calculation integrity coverage for category behaviors and absence scenarios
+- [x] Run complete regression, production build, persistence checks, and push validated enhancements to main

@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { AppData, AttendanceCategory, AttendanceProfile, AttendanceRecord, DEFAULT_CATEGORIES, TimetableEvent } from "@/shared/attendance";
+import { applyEventToTotals, AppData, AttendanceCategory, AttendanceProfile, AttendanceRecord, DEFAULT_CATEGORIES, TimetableEvent } from "@/shared/attendance";
 
 const STORAGE_KEY = "attendance-companion:data:v1";
 const emptyData: AppData = { profile: null, categories: DEFAULT_CATEGORIES, timetable: [], records: [] };
@@ -29,9 +29,23 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     ...data,
     hydrated,
     saveProfile: (profile) => setData((current) => ({ ...current, profile })),
-    saveCategories: (categories) => setData((current) => ({ ...current, categories })),
+    saveCategories: (categories) => setData((current) => ({
+      ...current,
+      categories,
+      records: current.records.map((record) => {
+        if (typeof record.presentHours === "number" && typeof record.totalHours === "number") return record;
+        const event = current.timetable.find((item) => item.id === record.eventId);
+        if (!event) return record;
+        const snapshot = applyEventToTotals(event, record.state, current.categories);
+        return { ...record, presentHours: snapshot.present, totalHours: snapshot.total };
+      }),
+    })),
     saveTimetable: (timetable) => setData((current) => ({ ...current, timetable })),
-    markAttendance: (record) => setData((current) => ({ ...current, records: [...current.records.filter((item) => item.eventId !== record.eventId), record] })),
+    markAttendance: (record) => setData((current) => {
+      const event = current.timetable.find((item) => item.id === record.eventId);
+      const snapshot = event ? applyEventToTotals(event, record.state, current.categories) : { present: 0, total: 0 };
+      return { ...current, records: [...current.records.filter((item) => item.eventId !== record.eventId), { ...record, presentHours: snapshot.present, totalHours: snapshot.total }] };
+    }),
     reset: () => setData(emptyData),
   }), [data, hydrated]);
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
