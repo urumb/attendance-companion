@@ -22,7 +22,7 @@ export async function extractTimetableFromUpload(input: {
 
   const result = await invokeLLM({
     model: "gemini-3-flash-preview",
-    max_tokens: 4500,
+    max_tokens: 16000,
     response_format: { type: "json_object" },
     messages: [
       { role: "system", content: "You extract timetable data from uploaded documents. Return valid JSON only; never invent missing classes." },

@@ -15,7 +15,7 @@
 - [x] Build editable timetable review and confirmation screen
 - [x] Add empty, loading, error, and destructive-action confirmation states
 - [x] Run lint, typecheck, automated tests, and end-to-end persistence validation
-- [ ] Save final checkpoint and deliver project version
+- [x] Save final checkpoint and deliver project version
 
 - [x] Audit repository for secrets, sensitive local data, generated files, and build artifacts before GitHub use
 - [x] Update .gitignore and .env.example for safe GitHub preparation without changing app functionality
@@ -30,3 +30,11 @@
 - [x] Implement add, edit, delete, and safeguards for attendance categories
 - [x] Expand calculation integrity coverage for category behaviors and absence scenarios
 - [x] Run complete regression, production build, persistence checks, and push validated enhancements to main
+
+- [x] Restart the unresponsive development server and verify preview recovery
+
+- [x] Fix Expo timetable file-selection error this.validatePath is not a function without UI or calculation changes
+- [x] Validate actual image/PDF OCR and CSV/XLSX import through the editable Review screen
+- [x] Run lint, TypeScript, automated tests, and production builds after the upload fix
+
+- [x] Validate the fixed upload and OCR flow against the user-provided university timetable image and report exact extraction discrepancies
