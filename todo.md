@@ -54,3 +54,9 @@
 - [x] Add focused browser/native file payload conversion regression tests and preserve reset regression coverage
 - [x] Run lint, TypeScript, all tests, server build, and Expo web production export without claiming real timetable OCR validation
 - [x] Commit, push main, verify origin/main, and report the web upload fix
+
+- [ ] Reproduce Reset all local data failure in live web app and inspect only Attendance Companion browser persistence
+- [ ] Trace hydration, navigation, pending writes, and all reset-related storage/state paths
+- [ ] Implement the minimal reset-only fix and realistic browser lifecycle regression coverage
+- [ ] Manually verify populated reset, reload, first-launch recovery, and normal reconfiguration
+- [ ] Run full validation, commit reset-only changes, push main, and verify origin/main
