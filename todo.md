@@ -48,9 +48,9 @@
 - [ ] Investigate and fix reset state surviving in the actual runtime, including hydration, navigation, and delayed persistence races
 - [x] Fix web file reading for image/PDF/CSV/XLSX uploads while preserving native file handling and server-side OCR security
 - [ ] Manually validate reset→reload→first-launch and real web image→OCR→Review flows
-- [ ] Re-run full validation and push the regression fixes to origin/main without rewriting history
+- [x] Re-run full validation and push the regression fixes to origin/main without rewriting history
 
 - [x] Fix the remaining web upload path so it never calls native-only expo-file-system APIs
 - [x] Add focused browser/native file payload conversion regression tests and preserve reset regression coverage
 - [x] Run lint, TypeScript, all tests, server build, and Expo web production export without claiming real timetable OCR validation
-- [ ] Commit, push main, verify origin/main, and report the web upload fix
+- [x] Commit, push main, verify origin/main, and report the web upload fix
