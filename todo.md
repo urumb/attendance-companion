@@ -45,18 +45,5 @@
 - [x] Manually validate reset confirmation, reset, reload, and first-launch behavior
 - [x] Run full validation, commit intended fixes, push main without rewriting history, and verify origin/main
 
-- [ ] Investigate and fix reset state surviving in the actual runtime, including hydration, navigation, and delayed persistence races
-- [x] Fix web file reading for image/PDF/CSV/XLSX uploads while preserving native file handling and server-side OCR security
-- [ ] Manually validate reset→reload→first-launch and real web image→OCR→Review flows
-- [x] Re-run full validation and push the regression fixes to origin/main without rewriting history
 
-- [x] Fix the remaining web upload path so it never calls native-only expo-file-system APIs
-- [x] Add focused browser/native file payload conversion regression tests and preserve reset regression coverage
-- [x] Run lint, TypeScript, all tests, server build, and Expo web production export without claiming real timetable OCR validation
-- [x] Commit, push main, verify origin/main, and report the web upload fix
-
-- [ ] Reproduce Reset all local data failure in live web app and inspect only Attendance Companion browser persistence
-- [ ] Trace hydration, navigation, pending writes, and all reset-related storage/state paths
-- [ ] Implement the minimal reset-only fix and realistic browser lifecycle regression coverage
-- [ ] Manually verify populated reset, reload, first-launch recovery, and normal reconfiguration
-- [ ] Run full validation, commit reset-only changes, push main, and verify origin/main
+- [x] Reconstruct the previously reviewed timetable/OCR upload, server extraction, editable review, and associated tests without unrelated changes

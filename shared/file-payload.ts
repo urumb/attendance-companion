@@ -1,22 +1,35 @@
-export async function browserFileToText(file: Blob): Promise<string> {
-  return file.text();
+export function stripBrowserDataUri(value: string) {
+  const commaIndex = value.indexOf(",");
+  return commaIndex >= 0 ? value.slice(commaIndex + 1) : value;
 }
 
-export async function browserFileToBase64(file: Blob): Promise<string> {
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  let binary = "";
-  for (let offset = 0; offset < bytes.length; offset += 0x8000) {
-    binary += String.fromCharCode(...bytes.subarray(offset, Math.min(offset + 0x8000, bytes.length)));
+export async function browserFileToText(file: File) {
+  if (typeof file.text === "function") return file.text();
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error ?? new Error("The browser could not read this file."));
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.readAsText(file);
+  });
+}
+
+export async function browserFileToBase64(file: File) {
+  if (typeof file.arrayBuffer === "function") {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    let binary = "";
+    for (const byte of bytes) binary += String.fromCharCode(byte);
+    return btoa(binary);
   }
-  return btoa(binary);
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error ?? new Error("The browser could not read this file."));
+    reader.onload = () => resolve(stripBrowserDataUri(String(reader.result ?? "")));
+    reader.readAsDataURL(file);
+  });
 }
 
-export function decodeBrowserBase64Utf8(value: string): string {
-  const binary = atob(value.replace(/^data:[^;]+;base64,/, ""));
+export function decodeBrowserBase64Utf8(value: string) {
+  const binary = atob(stripBrowserDataUri(value));
   const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
   return new TextDecoder().decode(bytes);
-}
-
-export function stripBrowserDataUri(value: string): string {
-  return value.replace(/^data:[^;]+;base64,/, "");
 }
