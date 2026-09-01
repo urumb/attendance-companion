@@ -14,12 +14,6 @@ export async function browserFileToText(file: File) {
 }
 
 export async function browserFileToBase64(file: File) {
-  if (typeof file.arrayBuffer === "function") {
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    let binary = "";
-    for (const byte of bytes) binary += String.fromCharCode(byte);
-    return btoa(binary);
-  }
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = () => reject(reader.error ?? new Error("The browser could not read this file."));

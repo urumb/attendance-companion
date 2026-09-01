@@ -1,6 +1,7 @@
 import { invokeLLM } from "./_core/llm";
 import type { AttendanceCategory } from "../shared/attendance";
 import { transformExtractedTimetable, type ExtractionResponse } from "../shared/timetable-extraction";
+import { TRPCError } from "@trpc/server";
 
 const maxBase64Length = 13_000_000;
 const supportedMimeTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/heic", "application/pdf"]);
@@ -20,15 +21,23 @@ export async function extractTimetableFromUpload(input: {
     ? [{ type: "text" as const, text: extractionPrompt(categoryNames) }, { type: "file_url" as const, file_url: { url: source, mime_type: "application/pdf" as const } }]
     : [{ type: "text" as const, text: extractionPrompt(categoryNames) }, { type: "image_url" as const, image_url: { url: source, detail: "high" as const } }];
 
-  const result = await invokeLLM({
-    model: "gemini-3-flash-preview",
-    max_tokens: 16000,
-    response_format: { type: "json_object" },
-    messages: [
-      { role: "system", content: "You extract timetable data from uploaded documents. Return valid JSON only; never invent missing classes." },
-      { role: "user", content },
-    ],
-  });
+  let result;
+  try {
+    result = await invokeLLM({
+      model: "gemini-3-flash-preview",
+      max_tokens: 16000,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: "You extract timetable data from uploaded documents. Return valid JSON only; never invent missing classes." },
+        { role: "user", content },
+      ],
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("OPENAI_API_KEY is not configured")) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "The OCR provider is not configured locally. Please enter the timetable manually." });
+    }
+    throw error;
+  }
   const raw = result.choices[0]?.message.content;
   if (typeof raw !== "string") throw new Error("The timetable parser returned no readable result.");
   let parsed: ExtractionResponse;

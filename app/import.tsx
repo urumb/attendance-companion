@@ -55,7 +55,7 @@ export default function ImportScreen() {
   const pick = async () => {
     setError(""); setWarning(""); setLoading(true);
     try {
-      const result = await DocumentPicker.getDocumentAsync({ type: ["image/*", "application/pdf", "text/csv", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel"], copyToCacheDirectory: true, base64: true });
+      const result = await DocumentPicker.getDocumentAsync({ type: ["image/*", "application/pdf", "text/csv", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel"], copyToCacheDirectory: true });
       if (result.canceled) return;
       const picked = result.assets[0] as PickedAsset;
       const pickerResult = result as typeof result & { output?: File[] };
