@@ -34,13 +34,6 @@ export const appRouter = router({
       }))
       .mutation(({ input }) => extractTimetableFromUpload(input)),
   }),
-
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
 });
 
 export type AppRouter = typeof appRouter;

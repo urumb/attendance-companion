@@ -59,5 +59,6 @@ Thumbs.db
 .manus/
 .webdev/
 .project-config.json
+.claude/
 
 # Keep source-controlled project files, migrations, lockfiles, and bundled app assets tracked.
