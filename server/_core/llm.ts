@@ -206,14 +206,14 @@ const normalizeToolChoice = (
 
 const resolveApiUrl = () => {
   if (!ENV.forgeApiUrl || !ENV.forgeApiUrl.trim()) {
-    throw new Error("OPENAI_API_KEY is not configured");
+    throw new Error("OCR provider not configured: set BUILT_IN_FORGE_API_URL in the server .env file");
   }
   return `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions`;
 };
 
 const assertApiKey = () => {
   if (!ENV.forgeApiKey) {
-    throw new Error("OPENAI_API_KEY is not configured");
+    throw new Error("OCR provider not configured: set BUILT_IN_FORGE_API_KEY in the server .env file");
   }
 };
 
@@ -411,7 +411,7 @@ export async function listLLMModels(): Promise<ModelsResponse> {
   assertApiKey();
 
   if (!ENV.forgeApiUrl || !ENV.forgeApiUrl.trim()) {
-    throw new Error("OPENAI_API_KEY is not configured");
+    throw new Error("OCR provider not configured: set BUILT_IN_FORGE_API_URL in the server .env file");
   }
   const url = `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/models`;
 

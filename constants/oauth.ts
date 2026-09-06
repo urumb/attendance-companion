@@ -19,27 +19,37 @@ export const OWNER_NAME = env.ownerName;
 export const API_BASE_URL = env.apiBaseUrl;
 
 /**
- * Get the API base URL, deriving from current hostname if not set.
- * Metro runs on 8081, API server runs on 3000.
- * URL pattern: https://PORT-sandboxid.region.domain
+ * Get the API base URL for the Express backend server.
+ *
+ * Priority:
+ *  1. EXPO_PUBLIC_API_BASE_URL env var (explicit override, e.g. for staging)
+ *  2. Cloud sandbox pattern: Metro port 8081-<id>.region.host → API port 3000-<id>.region.host
+ *  3. Local development: localhost → localhost:3000  (Metro on 8081, API server on 3000)
+ *  4. Empty string (relative URL — only works when a reverse proxy routes /api/* to the server)
+ *
+ * To start the API server locally run:  pnpm dev:server
+ * To start both at once run:            pnpm dev
  */
 export function getApiBaseUrl(): string {
-  // If API_BASE_URL is set, use it
   if (API_BASE_URL) {
     return API_BASE_URL.replace(/\/$/, "");
   }
 
-  // On web, derive from current hostname by replacing port 8081 with 3000
   if (ReactNative.Platform.OS === "web" && typeof window !== "undefined" && window.location) {
     const { protocol, hostname } = window.location;
-    // Pattern: 8081-sandboxid.region.domain -> 3000-sandboxid.region.domain
+
+    // Cloud sandbox: 8081-sandboxid.region.domain → 3000-sandboxid.region.domain
     const apiHostname = hostname.replace(/^8081-/, "3000-");
     if (apiHostname !== hostname) {
       return `${protocol}//${apiHostname}`;
     }
+
+    // Local development: Metro runs on 8081, Express API server runs on 3000
+    if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
+      return `${protocol}//${hostname}:3000`;
+    }
   }
 
-  // Fallback to empty (will use relative URL)
   return "";
 }
 

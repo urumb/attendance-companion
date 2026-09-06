@@ -33,8 +33,11 @@ export async function extractTimetableFromUpload(input: {
       ],
     });
   } catch (error) {
-    if (error instanceof Error && error.message.includes("OPENAI_API_KEY is not configured")) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: "The OCR provider is not configured locally. Please enter the timetable manually." });
+    if (error instanceof Error && error.message.includes("OCR provider not configured")) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Image OCR is not configured on this server. Set BUILT_IN_FORGE_API_URL and BUILT_IN_FORGE_API_KEY in the server .env file, or enter the timetable manually.",
+      });
     }
     throw error;
   }

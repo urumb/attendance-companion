@@ -14,7 +14,7 @@ export default function SettingsScreen() {
 
   useEffect(() => {
     if (profile) setTarget(String(profile.target));
-  }, [profile?.target]);
+  }, [profile]);
 
   if (!profile) {
     return (
