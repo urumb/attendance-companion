@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateMetrics, DEFAULT_CATEGORIES, type AppData } from "@/shared/attendance";
+import { calculateMetrics, DEFAULT_CATEGORIES, parseTimetableText, type AppData } from "@/shared/attendance";
 
 const base: AppData = { profile: { name: "A", course: "CS", presentHours: 30, totalHours: 40, target: 75 }, categories: DEFAULT_CATEGORIES, timetable: [], records: [] };
 
@@ -85,5 +85,43 @@ describe("attendance engine", () => {
     expect(calculateMetrics(perfect).achievable).toBe(true);
     const notPerfect: AppData = { ...perfect, profile: { ...perfect.profile!, presentHours: 9 } };
     expect(calculateMetrics(notPerfect).achievable).toBe(false);
+  });
+});
+
+describe("parseTimetableText", () => {
+  it("parses a basic comma-separated row", () => {
+    const events = parseTimetableText("Monday,Mathematics,09:00-10:00", DEFAULT_CATEGORIES);
+    expect(events).toHaveLength(1);
+    expect(events[0].weekday).toBe(1);
+    expect(events[0].subject).toBe("Mathematics");
+    expect(events[0].startTime).toBe("09:00");
+    expect(events[0].endTime).toBe("10:00");
+    expect(events[0].duration).toBe(1);
+  });
+
+  it("skips header rows and unrecognized weekday names instead of mislabeling them as Sunday", () => {
+    const csv = "Day,Subject,Time\nMonday,Math,09:00-10:00\nUnknownDay,Science,11:00-12:00";
+    const events = parseTimetableText(csv, DEFAULT_CATEGORIES);
+    expect(events).toHaveLength(1);
+    expect(events[0].subject).toBe("Math");
+  });
+
+  it("matches category from row content", () => {
+    const events = parseTimetableText("Tuesday,Club meeting,10:00-11:00,Co-curricular", DEFAULT_CATEGORIES);
+    expect(events).toHaveLength(1);
+    expect(events[0].categoryId).toBe("cocurricular");
+  });
+
+  it("skips rows with fewer than 3 fields", () => {
+    const events = parseTimetableText("Monday,Math", DEFAULT_CATEGORIES);
+    expect(events).toHaveLength(0);
+  });
+
+  it("handles multiple rows and blank lines", () => {
+    const text = "Monday,Math,09:00-10:00\n\nTuesday,Physics,11:00-12:30\n";
+    const events = parseTimetableText(text, DEFAULT_CATEGORIES);
+    expect(events).toHaveLength(2);
+    expect(events[1].weekday).toBe(2);
+    expect(events[1].duration).toBe(1.5);
   });
 });

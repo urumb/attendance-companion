@@ -119,7 +119,7 @@ export function calculateMetrics(data: AppData, scenario: number | AttendanceSce
   const percentage = total > 0 ? (present / total) * 100 : 0;
   const projectedPercentage = projectedTotal > 0 ? (projectedPresent / projectedTotal) * 100 : percentage;
   const target = Math.min(100, Math.max(0, profile.target));
-  const safeAbsence = target >= 100 ? (percentage >= 100 ? 0 : 0) : Math.max(0, present / (target / 100) - total);
+  const safeAbsence = target >= 100 ? 0 : Math.max(0, present / (target / 100) - total);
   const hoursNeeded = Math.max(0, (target / 100) * total - present);
   const maxFutureMiss = Math.max(0, futureTotals.total - Math.max(0, ((present + futureTotals.present) / (target / 100 || 1)) - (total + futureTotals.total)));
   const achievable = target === 100 ? futureTotals.total === 0 && percentage >= 100 : (present + futureTotals.present) / Math.max(1, total + futureTotals.total) * 100 >= target;
@@ -151,7 +151,9 @@ export function parseTimetableText(text: string, categories: AttendanceCategory[
   const parsed = rows.flatMap((row, index) => {
     const parts = row.split(/[,\t|;]/).map((part) => part.trim());
     if (parts.length < 3) return [];
-    const weekday = Math.max(0, WEEKDAYS.findIndex((day) => day.toLowerCase().startsWith(parts[0].toLowerCase())));
+    const weekdayIndex = WEEKDAYS.findIndex((day) => day.toLowerCase().startsWith(parts[0].toLowerCase()));
+    if (weekdayIndex < 0) return [];
+    const weekday = weekdayIndex;
     const times = parts.find((part) => /\d{1,2}:\d{2}/.test(part)) ?? "09:00-10:00";
     const [startTime = "09:00", endTime = "10:00"] = times.split(/\s*(?:-|–|to)\s*/i);
     const [sh, sm] = startTime.split(":").map(Number);
